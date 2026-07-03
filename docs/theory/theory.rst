@@ -216,6 +216,10 @@ function of frequency :math:`\nu` (in Hz) using:
    \end{array}
    \right]
 
+See :ref:`tec_screens` for full details of how the screen is loaded from
+a FITS cube, how it is sampled in space and time, the origin of the
+constant above, and the relevant settings and source code.
+
 
 Interferometer Phase (K)
 ------------------------
