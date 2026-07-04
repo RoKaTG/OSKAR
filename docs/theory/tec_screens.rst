@@ -4,48 +4,25 @@
 Ionospheric TEC Screens
 ***********************
 
-The ionosphere enters OSKAR's measurement equation as an optional,
+The ionosphere enters the measurement equation as an optional,
 per-station, per-source phase term - the :math:`\mathbf{Z}` Jones matrix
 (see :ref:`theory`) - driven by an external screen of total electron
 content (TEC) values. This page describes how that screen is loaded,
-how the physics is applied, and where the relevant code lives.
-
-At a glance
-===========
-
-- **Model:** a single thin phase screen at a fixed height above the array.
-- **Input:** a FITS cube (axes X, Y, TIME, FREQ) whose pixels are
-  :math:`\Delta{\rm TEC}`, typically generated with
-  `ARatmospy <https://github.com/shrieks/ARatmospy>`_.
-- **Physics:** pierce the screen per source and station, look up
-  :math:`\Delta{\rm TEC}`, and convert it to a frequency-dependent phase.
-- **Hardware:** runs on CPU, CUDA and OpenCL.
-
-Where it fits
-=============
-
-OSKAR builds simulated visibilities from the Radio Interferometer
-Measurement Equation, a chain of two-by-two Jones matrices applied to each
-source. The ionosphere is the optional :math:`\mathbf{Z}` term, sitting
-between the interferometer phase :math:`\mathbf{K}` and the station beam
-:math:`\mathbf{E}`. In practice it is folded into the beam evaluation:
-after the screen is computed it is multiplied straight into the station
-beam (``oskar_station_beam.c``)::
-
-    /* Output = beam * ionosphere */
-    oskar_mem_multiply(out, out, ionosphere, ...);
+and how the physics is applied.
 
 The input screen
 ================
 
-OSKAR does not generate the ionosphere itself - you supply a FITS cube
+OSKAR does not generate the ionosphere model itself - you supply a FITS cube
 whose pixel values are interpreted as a change in total electron content
-(:math:`\Delta{\rm TEC}`) above the array. The cube's four axes are
-``XX``, ``YY``, ``TIME``, ``FREQ``: a stack of two-dimensional screens
-that evolve over the observation. These are commonly produced by the
-ARatmospy auto-regressive atmosphere generator, which lets the pattern
-drift and evolve with time. See the :ref:`example_ionosphere` example for
-a script that generates a suitable cube.
+(:math:`\Delta{\rm TEC}`) above the array. The cube's axes are ``XX``, ``YY``
+and ``TIME``: a stack of two-dimensional screens that evolve over the
+observation. (Any higher dimensions of the cube need to be of length 1.)
+These cubes can be produced using
+the `ARatmospy <https://github.com/shrieks/ARatmospy>`_ auto-regressive
+atmosphere generator, which lets the pattern drift and evolve with time.
+See the :ref:`example_ionosphere` example for a script that
+generates a suitable cube.
 
 The physics: TEC to phase
 =========================
@@ -76,12 +53,12 @@ The screen is then applied as a scalar phase on the identity matrix:
    \right]
 
 Because the phase goes as :math:`1/\nu`, the effect is far stronger at low
-frequencies, which is why this matters most for SKA-LOW.
+frequencies.
 
 Origin of the constant
 ----------------------
 
-The coefficient :math:`-8.44797245 \times 10^9` is not arbitrary: it is
+The coefficient :math:`-8.44797245 \times 10^9` is
 the cold-plasma phase-delay constant. The ionosphere has a phase
 refractive index :math:`n_{\rm ph} = \sqrt{1 - \nu_p^2/\nu^2}`, where the
 plasma frequency satisfies :math:`\nu_p^2 = N_e e^2 / (4\pi^2\varepsilon_0
@@ -100,28 +77,21 @@ Two conventions turn :math:`k` into the value in the code:
 
 - **Sign:** negative because the plasma phase index is less than one, so
   the wave's phase advances relative to vacuum.
-- **TEC units:** :math:`\Delta{\rm TEC}` is expressed in TEC units
-  (1 TECU :math:`= 10^{16}` electrons m\ :sup:`-2`), not electrons
-  m\ :sup:`-2`. Multiplying :math:`k` by :math:`10^{16}` gives
-  :math:`8.44797245 \times 10^9` (with :math:`\nu` in Hz).
-
-This is the same physics as the familiar ionospheric group-delay
-constant :math:`K = e^2/(8\pi^2\varepsilon_0 m_e) \approx 40.308`
-m\ :sup:`3` s\ :sup:`-2` used in GPS work: :math:`2\pi K/c \times 10^{16}`
-recovers the same number.
+- **TEC units:** :math:`\Delta{\rm TEC}` is expressed in TEC units,
+  with 1 TECU :math:`= 10^{16}` electrons m\ :sup:`-2`.
+  Multiplying :math:`k` by :math:`10^{16}` gives :math:`8.44797245 \times 10^9`.
 
 Pierce points
 -------------
 
 The world-to-pixel mapping places each source's pierce point using the
-station's projected position and the source direction cosines
-(``define_evaluate_tec_screen.h``)::
+station's projected position and the source direction cosines::
 
-    world_x = (station_u + s_l * screen_height_m) * inv_pixel_size_m;
-    world_y = (station_v + s_m * screen_height_m) * inv_pixel_size_m;
-    pix_x   = screen_num_pixels_x/2 + ROUND(world_x);
-    pix_y   = screen_num_pixels_y/2 + ROUND(world_y);
-    tec     = screen[pix_x + pix_y * screen_num_pixels_x];
+    world_x = (station_u + s_l * screen_height_m) / pixel_size_m
+    world_y = (station_v + s_m * screen_height_m) / pixel_size_m
+    pix_x   = screen_num_pixels_x / 2 + ROUND(world_x)
+    pix_y   = screen_num_pixels_y / 2 + ROUND(world_y)
+    tec     = screen[pix_x + pix_y * screen_num_pixels_x]
 
 Here ``station_u`` and ``station_v`` shift the sample point per station,
 while the direction cosines ``s_l`` and ``s_m`` shift it per source.
@@ -136,18 +106,16 @@ Screen geometry
 ---------------
 
 Where the screen sits, and how it is oriented, depends on the beam
-normalisation coordinate mode (``oskar_station_beam.c``):
+coordinate frame:
 
-- **RADEC mode** (phase-tracking - the usual ``oskar_sim_interferometer``
-  case): ``station_u`` and ``station_v`` are the standard interferometric
-  :math:`(u,v)` - the station position projected into the plane
-  perpendicular to the phase-centre direction - and the :math:`(l,m)`
-  passed to the kernel are direction cosines relative to the phase
-  centre. The screen is therefore a tangent plane oriented perpendicular
+- **RADEC mode** (phase-tracking - the usual case): ``station_u``
+  and ``station_v`` are the standard interferometric :math:`(u,v)` -
+  the station position projected into the plane perpendicular to the
+  phase-centre direction - and the :math:`(l,m)` passed to the kernel are
+  direction cosines relative to the phase centre.
+  The screen is therefore a tangent plane oriented perpendicular
   to the line of sight to the phase centre, co-moving with the field as
-  it tracks. Its pixel-:math:`y` ("north") axis is the :math:`m`-axis -
-  increasing declination in that tangent plane - not local geographic
-  north, and not zenith.
+  it tracks.
 
 - **AZEL mode** (fixed or drift-scan beams): :math:`(u,v)` are computed
   towards the zenith and reduce to horizontal East/North ground
@@ -164,23 +132,19 @@ normalisation coordinate mode (``oskar_station_beam.c``):
 
 .. note::
 
-    **Faraday rotation variant.** A second kernel
-    (``..._WITH_FARADAY_ROTATION``) produces a full two-by-two rotation
-    matrix instead of a scalar phase, using the geomagnetic field along
-    the line of sight per ITU-R P.531-6:
+    **Faraday rotation.** When not running in scalar mode, a full
+    two-by-two rotation matrix is evaluated instead of just a scalar phase,
+    using the geomagnetic field along the line of sight per ITU-R P.531-6:
     :math:`{\rm faraday\_angle} = 236 \cdot B_{\rm los} \cdot {\rm TEC}
     \cdot \nu_{\rm GHz}^{-2}`.
 
 Time evolution
 ==============
 
-The time resolution of the screen does **not** need to match the
+The time resolution of the screen does not need to match the
 simulation time steps. As the simulation steps through time, OSKAR
 selects the nearest slice of the cube and reads a new two-dimensional
-screen only when the index changes (``oskar_station_work.c``)::
-
-    obs_time_sec        = 86400.0 * (time_mjd_utc - time_start_mjd_utc);
-    required_time_index = round(obs_time_sec / screen_time_interval_sec);
+screen only when the slice index changes.
 
 For example, a screen with 60-second slices used with 4-second
 integrations reuses the same slice for about 15 consecutive
@@ -209,12 +173,11 @@ lookup. Points to note:
 Settings
 ========
 
-All keys live under the ``telescope`` group and are parsed in
-``oskar_settings_to_telescope.cpp``.
+All keys live under the ``telescope`` group.
 
 .. list-table::
    :header-rows: 1
-   :widths: 40 15 45
+   :widths: 45 15 40
 
    * - Key
      - Default
@@ -237,25 +200,3 @@ All keys live under the ``telescope`` group and are parsed in
    * - ``isoplanatic_screen``
      - ``false``
      - Use the same phase for all sources at each station.
-
-Code map
-========
-
-.. list-table::
-   :header-rows: 1
-   :widths: 45 55
-
-   * - Concern
-     - File
-   * - Kernel math (phase, pierce point, Faraday)
-     - ``telescope/station/define_evaluate_tec_screen.h``
-   * - CPU / CUDA / OpenCL dispatch
-     - ``telescope/station/src/oskar_evaluate_tec_screen.c``
-   * - FITS slice loading and kernel call
-     - ``telescope/station/src/oskar_station_work.c``
-   * - Applying Z to the beam
-     - ``telescope/station/src/oskar_station_beam.c``
-   * - Settings to telescope model
-     - ``apps/src/oskar_settings_to_telescope.cpp``
-   * - Settings schema
-     - ``apps/xml/oskar_telescope_model.xml``
