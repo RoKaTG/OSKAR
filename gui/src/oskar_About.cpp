@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2025, The OSKAR Developers.
+ * Copyright (c) 2012-2026, The OSKAR Developers.
  * See the LICENSE file at the top-level directory of this distribution.
  */
 
@@ -41,7 +41,7 @@ About::About(QString app_name, QString app_version, QWidget *parent)
     // Create title.
     setWindowTitle("About OSKAR");
     QLabel* title = new QLabel("OSKAR", this);
-    title->setFont(QFont("Arial", 28));
+    title->setFont(QFont("Arial", 18));
     hLayout1->addWidget(title);
 
     // Add title block to vertical layout.
@@ -84,7 +84,7 @@ About::About(QString app_name, QString app_version, QWidget *parent)
         QTextCursor cursor(licenseText);
         cursor.setBlockFormat(paragraph);
         cursor.insertText(
-                "Copyright (c) 2011-2025, The OSKAR Developers.\n"
+                "Copyright (c) 2011-2026, The OSKAR Developers.\n"
                 "All rights reserved.");
         cursor.insertBlock();
         cursor.insertText("Redistribution and use in source and binary forms, "
