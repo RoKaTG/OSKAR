@@ -135,14 +135,14 @@ apptainer-release:
 mac-release:
   stage: publish
   tags: [saas-macos-large-m2pro]
-  image: macos-14-xcode-15
+  image: macos-15-xcode-16
   before_script:
     - export HOMEBREW_NO_AUTO_UPDATE=1
     - export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
     # Install build tools and runtime dependencies as native arm64 Homebrew
     # bottles (qt and hdf5 pour in seconds instead of compiling from source).
     # The build image's macOS version sets the bottles' deployment target, so
-    # it must match the macOS 14 minimum declared in CMakeLists.txt;
+    # it must match the macOS 15 minimum declared in CMakeLists.txt;
     # validate_macos_bundle.sh enforces that floor on the packaged DMG.
     # The GUI requires Qt 6 (>= 6.2); Homebrew's "qt" formula is Qt 6.
     - brew install wget cmake qt hdf5 bison flex
@@ -168,7 +168,7 @@ mac-release:
       -DUSE_THREADS=ON
       -DCMAKE_INSTALL_PREFIX="$HOME/local"
       -DCMAKE_OSX_ARCHITECTURES=arm64
-      -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
     - make -j4 && make install
     - cd ../ && rm -rf build-casacore/
     # Build OSKAR.
@@ -177,7 +177,7 @@ mac-release:
       -DFIND_OPENCL=ON
       -DCMAKE_PREFIX_PATH="$(brew --prefix qt);$HOME/local"
       -DCMAKE_OSX_ARCHITECTURES=arm64
-      -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
     - make -j4
   script:
     - make package
