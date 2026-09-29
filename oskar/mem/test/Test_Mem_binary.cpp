@@ -23,7 +23,7 @@ TEST(binary_file, binary_read_write_mem)
 {
     const char filename[] = "temp_test_mem_binary.dat";
     int num_cpu = 1000;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     int num_gpu = 2048;
 #endif
     int status = 0;
@@ -50,7 +50,7 @@ TEST(binary_file, binary_read_write_mem)
         oskar_mem_free(mem, &status);
     }
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Save data from GPU.
     {
         oskar_Mem *mem_cpu = 0, *mem_gpu = 0;
@@ -145,7 +145,7 @@ TEST(binary_file, binary_read_write_mem)
     oskar_binary_free(h);
     h = oskar_binary_create(filename, 'r', &status);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Load data directly to GPU.
     {
         oskar_Mem *mem_gpu = 0, *mem_cpu = 0;

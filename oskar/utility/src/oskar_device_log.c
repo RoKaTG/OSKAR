@@ -22,6 +22,24 @@ void oskar_device_log_details(const oskar_Device* device, oskar_Log* log)
     oskar_log_message(log, p, 0, "Device %d (%s):",
             device->index, device->name);
     oskar_log_value(log, p, 1, "Vendor", "%s", device->vendor);
+#ifdef OSKAR_HAVE_HIP
+    /* platform_type 'C' means "the vendor GPU runtime"; say which one. HIP
+     * encodes versions as major * 10^7 + minor * 10^5 + patch, so the CUDA
+     * formatting below would print 60140091 as "60140.9". */
+    oskar_log_value(log, p, 1, "Compute platform", "%s",
+            device->platform_type == 'C' ? "HIP" : "OpenCL");
+    if (device->platform_type == 'C')
+    {
+        oskar_log_value(log, p, 1, "HIP runtime version", "%d.%d.%d",
+                device->cuda_runtime_version / 10000000,
+                (device->cuda_runtime_version / 100000) % 100,
+                device->cuda_runtime_version % 100000);
+        oskar_log_value(log, p, 1, "HIP driver version", "%d.%d.%d",
+                device->cuda_driver_version / 10000000,
+                (device->cuda_driver_version / 100000) % 100,
+                device->cuda_driver_version % 100000);
+    }
+#else
     oskar_log_value(log, p, 1, "Compute platform", "%s",
             device->platform_type == 'C' ? "CUDA" : "OpenCL");
     if (device->platform_type == 'C')
@@ -33,6 +51,7 @@ void oskar_device_log_details(const oskar_Device* device, oskar_Log* log)
                 (device->cuda_driver_version / 1000),
                 (device->cuda_driver_version % 100) / 10);
     }
+#endif
     else if (device->platform_type == 'O')
     {
         oskar_log_value(log, p, 1, "OpenCL version", "%s", device->cl_version);
@@ -41,7 +60,11 @@ void oskar_device_log_details(const oskar_Device* device, oskar_Log* log)
     }
     if (device->compute_capability[0] > 0)
     {
+#ifdef OSKAR_HAVE_HIP
+        oskar_log_value(log, p, 1, "GPU architecture version", "%d.%d",
+#else
         oskar_log_value(log, p, 1, "CUDA compute capability", "%d.%d",
+#endif
                 device->compute_capability[0], device->compute_capability[1]);
     }
     oskar_log_value(log, p, 1, "Supports double precision", "%s",

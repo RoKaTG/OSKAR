@@ -35,7 +35,7 @@ TEST(apps_test, test_beam_pattern_modes)
 
     // Test use of CPU and GPU.
     const char* devices[] = {"CPU"
-#if defined(OSKAR_HAVE_CUDA) || defined(OSKAR_HAVE_OPENCL)
+#if defined(OSKAR_HAVE_GPU) || defined(OSKAR_HAVE_OPENCL)
             , "GPU"
 #endif
     };

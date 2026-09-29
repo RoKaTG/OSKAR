@@ -72,7 +72,7 @@ TEST(evaluate_baselines, cpu_gpu)
     }
 
     // Allocate device memory and copy input data.
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     location = OSKAR_GPU;
 #endif
     u_gpu = oskar_mem_create_copy(u, location, &status);

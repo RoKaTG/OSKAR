@@ -30,6 +30,7 @@ declare_oskar_apps(
     oskar_system_info
     oskar_vis_add
     oskar_vis_add_noise
+    oskar_vis_compare
     oskar_vis_summary)
 
 # Install python scripts to the installation binary directory

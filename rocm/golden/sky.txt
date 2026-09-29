@@ -1,0 +1,7 @@
+Format = RaD, DecD, I, Q, U, V, ReferenceFrequency='100e6', SpectralIndex='-0.7', MajorAxis, MinorAxis, Orientation
+# Named-column sky model file, with default values used in empty fields.
+# Requires OSKAR 2.12 or later.
+# NUMBER_OF_COMPONENTS=3
+20.0, -30.0, 1,  ,  ,  ,,,    ,   ,
+20.0, -30.5, 3, 2, 2, 0,,, 600, 50,  45
+20.5, -30.5, 3, 0, 0, 2,,, 700, 10, -10

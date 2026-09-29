@@ -1,5 +1,9 @@
 /* Copyright (c) 2018-2026, The OSKAR Developers. See LICENSE file. */
 
+/* nvcc injects the CUDA runtime into every .cu automatically; the HIP
+ * front end does not, so ask for it explicitly. */
+#include "utility/oskar_gpu.h"
+
 #include "sky/define_sky_copy_source_data.h"
 #include "sky/define_sky_scale_flux_with_frequency.h"
 #include "sky/define_update_horizon_mask.h"

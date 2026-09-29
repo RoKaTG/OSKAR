@@ -115,7 +115,7 @@ TEST(Mem, add_in_place)
 }
 
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 TEST(Mem, add_gpu_single)
 {
     int num_elements = 445, prec = OSKAR_SINGLE, status = 0;

@@ -42,7 +42,7 @@ TEST(Timer, test_consistency)
     double elapsed_cuda = oskar_timer_elapsed(t_cuda);
     double elapsed_omp = oskar_timer_elapsed(t_omp);
     EXPECT_NEAR(2.0, elapsed_native, 1e-2);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     EXPECT_NEAR(elapsed_native, elapsed_cuda, 5e-3);
     EXPECT_NEAR(2.0, elapsed_cuda, 1e-2);
 #endif
@@ -77,7 +77,7 @@ static void time_timer(int type, const char* label)
 
 TEST(Timer, test_performance)
 {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     time_timer(OSKAR_TIMER_CUDA,   "  CUDA");
 #endif
 #ifdef _OPENMP

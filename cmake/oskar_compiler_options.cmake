@@ -125,6 +125,27 @@ endif()
 # --compiler-options or -Xcompiler: specify options directly to the compiler
 #                                   that nvcc encapsulates.
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# HIP compiler options.
+# ------------------------------------------------------------------------------
+if (hip_FOUND)
+    # gfx90a is the CDNA2 architecture used by the MI200 series (MI210/MI250).
+    # Override with -DHIP_ARCH="gfx90a;gfx942" to target several, or to match
+    # a different card -- `rocminfo | grep gfx` names the one you have.
+    if (NOT DEFINED HIP_ARCH)
+        set(HIP_ARCH "gfx90a")
+        message("-- INFO: Setting HIP_ARCH to ${HIP_ARCH} (AMD MI210/MI250).")
+        message("-- INFO: Override with -DHIP_ARCH=\"<gfx...>\" if this is wrong;")
+        message("-- INFO: `rocminfo | grep gfx` reports the installed architecture.")
+    endif()
+    set(CMAKE_HIP_ARCHITECTURES ${HIP_ARCH})
+    set(CMAKE_HIP_FLAGS_RELEASE "-O3")
+    set(CMAKE_HIP_FLAGS_DEBUG "-O0 -g")
+    set(CMAKE_HIP_FLAGS_RELWITHDEBINFO "-O3 -g")
+    set(CMAKE_HIP_FLAGS_MINSIZEREL "-O1")
+    message("-- INFO: Building HIP device code for: ${CMAKE_HIP_ARCHITECTURES}")
+endif()
+
 if (CUDAToolkit_FOUND)
     if (MSVC)
         set(CUDA_PROPAGATE_HOST_FLAGS ON)

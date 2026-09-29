@@ -31,7 +31,7 @@
 #include "utility/oskar_get_error_string.h"
 #include "mem/oskar_mem.h"
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 TEST(Mem, realloc_gpu)
 {
     int status = 0;

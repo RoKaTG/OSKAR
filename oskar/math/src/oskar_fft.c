@@ -6,8 +6,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cufft.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu_fft.h"
 #endif
 
 #include "log/oskar_log.h"
@@ -24,13 +24,13 @@ struct oskar_FFT
     size_t num_cells_total;
     oskar_Mem *fftpack_work, *fftpack_wsave;
     int precision, location, num_dim, dim_size, ensure_consistent_norm;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     cufftHandle cufft_plan;
 #endif
 };
 
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 /* LCOV_EXCL_START */
 static void print_cufft_error(cufftResult code)
 {
@@ -83,7 +83,7 @@ oskar_FFT* oskar_fft_create(
 {
     int i = 0;
     oskar_FFT* h = (oskar_FFT*) calloc(1, sizeof(oskar_FFT));
-#ifndef OSKAR_HAVE_CUDA
+#ifndef OSKAR_HAVE_GPU
     if (location == OSKAR_GPU) location = OSKAR_CPU;
 #endif
 #ifndef OSKAR_HAVE_OPENCL
@@ -147,7 +147,7 @@ oskar_FFT* oskar_fft_create(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         cufftResult cufft_error_code = CUFFT_SUCCESS;
         if (num_dim == 1)
         {
@@ -231,7 +231,7 @@ void oskar_fft_exec(oskar_FFT* h, oskar_Mem* data, int* status)
     }
     else if (h->location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         cufftResult cufft_error_code = CUFFT_SUCCESS;
         if (h->precision == OSKAR_DOUBLE)
         {
@@ -276,7 +276,7 @@ void oskar_fft_free(oskar_FFT* h)
     if (!h) return;
     oskar_mem_free(h->fftpack_work, &status);
     oskar_mem_free(h->fftpack_wsave, &status);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (h->location == OSKAR_GPU)
     {
         cufftDestroy(h->cufft_plan);

@@ -119,7 +119,7 @@ void oskar_harp_evaluate_smodes(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         if (precision == OSKAR_DOUBLE)
         {
             harp_precompute_smodes_mbf_cuda_double(
@@ -296,7 +296,7 @@ void oskar_harp_evaluate_station_beam(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         oskar_Mem* gpu_coeffs = oskar_mem_create_copy(
                     h->coeffs[feed], location, status
         );
@@ -487,7 +487,7 @@ void oskar_harp_evaluate_element_beams(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         oskar_harp_reorder_coeffs(h, feed, status);
         oskar_Mem* gpu_coeffs = oskar_mem_create_copy(
                     h->coeffs_reordered[feed], location, status

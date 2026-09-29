@@ -151,7 +151,7 @@ TEST_F(cross_power, matrix_singleCPU_doubleCPU)
             OSKAR_CPU, OSKAR_CPU, 1);
 }
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 TEST_F(cross_power, matrix_singleGPU_doubleGPU)
 {
     runTest(OSKAR_SINGLE, OSKAR_DOUBLE,
@@ -192,7 +192,7 @@ TEST_F(cross_power, scalar_singleCPU_doubleCPU)
             OSKAR_CPU, OSKAR_CPU, 0);
 }
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 TEST_F(cross_power, scalar_singleGPU_doubleGPU)
 {
     runTest(OSKAR_SINGLE, OSKAR_DOUBLE,

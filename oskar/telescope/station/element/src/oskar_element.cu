@@ -1,5 +1,9 @@
 /* Copyright (c) 2018-2026, The OSKAR Developers. See LICENSE file. */
 
+/* nvcc injects the CUDA runtime into every .cu automatically; the HIP
+ * front end does not, so ask for it explicitly. */
+#include "utility/oskar_gpu.h"
+
 #include "math/oskar_cmath.h"
 #include "math/define_legendre_polynomial.h"
 #include "math/define_legendre_polynomial_norm.h"

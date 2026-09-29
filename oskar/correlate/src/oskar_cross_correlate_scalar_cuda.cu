@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cuda_runtime.h>
+#include "utility/oskar_gpu.h"
 
 enum {
     VER_UNKNOWN    = -1,  // Not checked.

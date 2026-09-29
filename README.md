@@ -7,6 +7,11 @@ OSKAR has been designed to produce simulated visibility data from radio
 telescopes containing aperture arrays, such as those envisaged for the
 Square Kilometre Array.
 
+> **AMD GPUs (ROCm / HIP).** This branch adds a HIP backend, so OSKAR runs on
+> AMD GPUs as well as NVIDIA ones. The CUDA, OpenCL and CPU backends are
+> unchanged. See **[rocm/README.md](rocm/README.md)** for how to build and run
+> it, and what was changed.
+
 A source code archive, and pre-built binary packages for Linux (using
 Singularity), macOS and Windows platforms are available to download from
 

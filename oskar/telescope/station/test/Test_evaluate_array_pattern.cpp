@@ -20,7 +20,7 @@
 
 using namespace std;
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 static int device_loc = OSKAR_GPU;
 #else
 static int device_loc = OSKAR_CPU;

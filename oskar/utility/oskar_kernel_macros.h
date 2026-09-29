@@ -25,9 +25,50 @@
     M_CAT(ATOMIC_ADD_UPDATE_, TYPE)(ARRAY, IDX, VAL)
 #define ROUND(FP, X) M_CAT(ROUND_, FP)(X)
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP__)
 
-/* == CUDA ================================================================ */
+/* == CUDA / HIP ========================================================== */
+/* The two runtimes are source-compatible for everything below, so they share
+ * one branch. What differs is how each advertises capability:
+ *
+ *   - NVIDIA gates on __CUDA_ARCH__, which hipcc does not define. An
+ *     undefined identifier evaluates to 0 in #if, so a naive reuse of those
+ *     guards silently selects the *fallback* definitions -- and the fallback
+ *     for WARP_REDUCE is empty, which would drop most of every reduction
+ *     without any diagnostic. The two OSKAR_GPU_HAS_* flags below exist so
+ *     that trap cannot be re-introduced by editing a guard.
+ *
+ *   - AMD's wavefront is 64 lanes on CDNA and 32 on RDNA. See the note above
+ *     WARP_REDUCE for why that does not change the reduction. */
+#if defined(__HIPCC__) || defined(__HIP__)
+    /* Every GPU HIP targets has cross-lane shuffles, and FP64 atomicAdd is
+     * available on all supported architectures (lowered to a CAS loop by the
+     * compiler where there is no hardware instruction, which is correct
+     * either way). */
+    #define OSKAR_GPU_HAS_SHUFFLE 1
+    #define OSKAR_GPU_HAS_FP64_ATOMICS 1
+
+    /* sincos() and rsqrt() are not <cmath> functions, so HIP does not get the
+     * usual set of C++ float overloads for them: it declares sincos() for
+     * double only, and the float instantiation of every kernel fails to
+     * resolve. CUDA happens to supply both. Rather than depend on which
+     * overloads a given ROCm release provides, dispatch explicitly to the
+     * float and double entry points, which are stable. */
+    __device__ static inline void oskar_sincos_(
+            float x, float* s, float* c) { sincosf(x, s, c); }
+    __device__ static inline void oskar_sincos_(
+            double x, double* s, double* c) { sincos(x, s, c); }
+    __device__ static inline float oskar_rsqrt_(float x) { return rsqrtf(x); }
+    __device__ static inline double oskar_rsqrt_(double x) { return rsqrt(x); }
+#else
+    #if __CUDA_ARCH__ >= 300
+        #define OSKAR_GPU_HAS_SHUFFLE 1
+    #endif
+    #if __CUDA_ARCH__ >= 600
+        #define OSKAR_GPU_HAS_FP64_ATOMICS 1
+    #endif
+#endif
+
 #define ATOMIC_ADD_CAPTURE_float(ARRAY, IDX, VAL, OLD)\
     OLD = atomicAdd(&ARRAY[IDX], VAL);
 #define ATOMIC_ADD_CAPTURE_int(ARRAY, IDX, VAL, OLD)\
@@ -78,11 +119,16 @@
 #define OSKAR_REGISTER_KERNEL(NAME) OSKAR_CUDA_KERNEL(NAME)
 #define ROUND_float(X) __float2int_rn(X)
 #define ROUND_double(X) __double2int_rn(X)
+#if defined(__HIPCC__) || defined(__HIP__)
+#define RSQRT(X) oskar_rsqrt_(X)
+#define SINCOS(X, S, C) oskar_sincos_(X, &S, &C)
+#else
 #define RSQRT(X) rsqrt(X)
 #define SINCOS(X, S, C) sincos(X, &S, &C)
+#endif
 #define THREADFENCE_BLOCK __threadfence_block()
 
-#if __CUDA_ARCH__ >= 600
+#ifdef OSKAR_GPU_HAS_FP64_ATOMICS
 /* Native atomics. */
 #define ATOMIC_ADD_CAPTURE_double(ARRAY, IDX, VAL, OLD)\
     OLD = atomicAdd(&ARRAY[IDX], VAL);
@@ -105,19 +151,39 @@
     while (assumed != old_);\
     }\
 
-#endif /* __CUDA_ARCH__ >= 600 */
+#endif /* OSKAR_GPU_HAS_FP64_ATOMICS */
 
-#if __CUDA_ARCH__ >= 300
-    #if CUDART_VERSION >= 9000
-        #define WARP_SHUFFLE(    VAR, SRC_LANE)  __shfl_sync(0xFFFFFFFF, VAR, SRC_LANE)
-        #define WARP_SHUFFLE_XOR(VAR, LANE_MASK) __shfl_xor_sync(0xFFFFFFFF, VAR, LANE_MASK)
+/* OSKAR's kernels are written in terms of 32-lane groups: they derive a warp
+ * index as (threadIdx.x >> 5) and a lane as (threadIdx.x & 31), and each
+ * group handles a different baseline. OSKAR_WARP_WIDTH pins the shuffle
+ * segment to that logical width so the grouping holds on any hardware
+ * wavefront, including AMD's 64-lane CDNA wavefront where one wavefront
+ * spans two of these groups. */
+#define OSKAR_WARP_WIDTH 32
+
+#ifdef OSKAR_GPU_HAS_SHUFFLE
+    #if defined(__HIPCC__) || defined(__HIP__)
+        #define WARP_SHUFFLE(    VAR, SRC_LANE)  __shfl(VAR, SRC_LANE, OSKAR_WARP_WIDTH)
+        #define WARP_SHUFFLE_XOR(VAR, LANE_MASK) __shfl_xor(VAR, LANE_MASK, OSKAR_WARP_WIDTH)
+    #elif CUDART_VERSION >= 9000
+        #define WARP_SHUFFLE(    VAR, SRC_LANE)  __shfl_sync(0xFFFFFFFF, VAR, SRC_LANE, OSKAR_WARP_WIDTH)
+        #define WARP_SHUFFLE_XOR(VAR, LANE_MASK) __shfl_xor_sync(0xFFFFFFFF, VAR, LANE_MASK, OSKAR_WARP_WIDTH)
     #else
-        #define WARP_SHUFFLE(    VAR, SRC_LANE)  __shfl(VAR, SRC_LANE)
-        #define WARP_SHUFFLE_XOR(VAR, LANE_MASK) __shfl_xor(VAR, LANE_MASK)
+        #define WARP_SHUFFLE(    VAR, SRC_LANE)  __shfl(VAR, SRC_LANE, OSKAR_WARP_WIDTH)
+        #define WARP_SHUFFLE_XOR(VAR, LANE_MASK) __shfl_xor(VAR, LANE_MASK, OSKAR_WARP_WIDTH)
     #endif
 
     #define WARP_BROADCAST(VAR, SRC_LANE) VAR = WARP_SHUFFLE(VAR, SRC_LANE)
     #define WARP_DECL(X) X
+
+    /* Butterfly reduction over OSKAR_WARP_WIDTH lanes: five XOR steps cover
+     * masks 1..16, which is exactly 32 lanes.
+     *
+     * Do NOT add a sixth step for 64-wide wavefronts. The extra step would
+     * fold lanes 0-31 together with lanes 32-63, and those two halves belong
+     * to *different baselines* -- the result would be silently wrong. A
+     * 64-lane wavefront is meant to run two of these reductions side by
+     * side, which is what the pinned shuffle width above guarantees. */
     #define WARP_REDUCE(A) {\
             (A) += WARP_SHUFFLE_XOR((A), 1);\
             (A) += WARP_SHUFFLE_XOR((A), 2);\
@@ -128,8 +194,17 @@
 #else
     #define WARP_BROADCAST(VAR, SRC_LANE) __syncthreads()
     #define WARP_DECL(X) __shared__ X
+    /* Reached on the nvcc *host* pass, where __CUDA_ARCH__ is undefined, so
+     * this has to stay a no-op. The guard below is what makes the dangerous
+     * case -- a device pass with no shuffles -- loud instead of silent. */
     #define WARP_REDUCE(A)
-#endif /* __CUDA_ARCH__ >= 300 */
+#endif /* OSKAR_GPU_HAS_SHUFFLE */
+
+#if defined(__HIP_DEVICE_COMPILE__) && !defined(OSKAR_GPU_HAS_SHUFFLE)
+#error "HIP device pass without OSKAR_GPU_HAS_SHUFFLE: WARP_REDUCE would \
+expand to nothing and every warp reduction would silently return only lane \
+zero's partial sum. Fix the capability guard above rather than this check."
+#endif
 
 
 #elif defined(__OPENCL_VERSION__)

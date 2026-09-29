@@ -3,8 +3,8 @@
  * See the LICENSE file at the top-level directory of this distribution.
  */
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -30,7 +30,7 @@ void oskar_mem_read_element(const oskar_Mem* mem, size_t index,
     }
     else if (mem->location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         const char* from = ((const char*) mem->data) + offset;
         cudaMemcpy(out, (const void*)from, bytes, cudaMemcpyDeviceToHost);
 #else

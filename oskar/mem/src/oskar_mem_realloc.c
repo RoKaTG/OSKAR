@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -96,7 +96,7 @@ void oskar_mem_realloc(oskar_Mem* mem, size_t num_elements, int* status)
     }
     else if (mem->location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         /* Allocate and initialise a new block of memory. */
         void* mem_new = NULL;
         if (new_size > 0)
@@ -107,6 +107,13 @@ void oskar_mem_realloc(oskar_Mem* mem, size_t num_elements, int* status)
                 *status = cuda_error;                     /* LCOV_EXCL_LINE */
                 return;                                   /* LCOV_EXCL_LINE */
             }
+#ifdef OSKAR_HAVE_HIP
+            /* See oskar_mem_create(): clear new device memory on HIP. */
+            if (mem_new && !getenv("OSKAR_HIP_NO_CLEAR_ON_ALLOC"))
+            {
+                (void) cudaMemset(mem_new, 0, new_size);
+            }
+#endif
             if (!mem_new)
             {
                 *status = OSKAR_ERR_MEMORY_ALLOC_FAILURE; /* LCOV_EXCL_LINE */

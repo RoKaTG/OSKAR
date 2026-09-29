@@ -12,8 +12,8 @@
 #include "utility/private_device.h"
 #include "utility/oskar_device.h"
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "log/oskar_log.h"

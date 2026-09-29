@@ -5,7 +5,7 @@
 
 #include "math/private_random_helpers.h"
 #include "utility/oskar_cuda_registrar.h"
-#include <cuda_runtime.h>
+#include "utility/oskar_gpu.h"
 
 __global__
 void oskar_mem_random_gaussian_float(

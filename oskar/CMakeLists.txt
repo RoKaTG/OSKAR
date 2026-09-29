@@ -6,6 +6,9 @@ include(oskar_build_macros)
 if (CUDAToolkit_FOUND)
     enable_language(CUDA)
 endif()
+if (hip_FOUND)
+    enable_language(HIP)
+endif()
 
 # Try to build MS library first.
 add_subdirectory(ms)
@@ -54,6 +57,19 @@ endif()
 # Build the main library.
 add_library(${libname} ${${libname}_SRC})
 
+# The .cu files hold the GPU kernels. Their contents are backend-neutral --
+# the vendor differences live in utility/oskar_kernel_macros.h and
+# utility/oskar_gpu.h -- so for a HIP build the same files are simply handed
+# to the HIP front end instead of nvcc, rather than being duplicated as .hip.
+if (hip_FOUND)
+    foreach (file ${${libname}_SRC})
+        get_filename_component(fileext ${file} EXT)
+        if (fileext STREQUAL ".cu")
+            set_source_files_properties(${file} PROPERTIES LANGUAGE HIP)
+        endif()
+    endforeach()
+endif()
+
 # Link libraries.
 target_link_libraries(${libname} PRIVATE cfitsio Threads::Threads)
 target_link_libraries(${libname} PUBLIC oskar_binary)
@@ -82,6 +98,17 @@ if (OpenCL_FOUND)
 endif()
 if (CUDAToolkit_FOUND)
     target_link_libraries(${libname} PRIVATE CUDA::cufft CUDA::cudart)
+endif()
+if (hip_FOUND)
+    # hip::host, not hip::device. The latter puts -xhip into
+    # INTERFACE_COMPILE_OPTIONS for *every* language in the target, so the
+    # plain C++ OpenMP sources get handed to the host compiler as HIP and it
+    # rejects them ("language hip is not recognized"). Device compilation is
+    # already handled by the LANGUAGE HIP property set on the .cu files.
+    target_link_libraries(${libname} PRIVATE hip::host)
+    if (hipfft_FOUND)
+        target_link_libraries(${libname} PRIVATE hip::hipfft)
+    endif()
 endif()
 if (HARP_FOUND)
     target_link_libraries(${libname} PRIVATE ${HARP_LIBRARY})

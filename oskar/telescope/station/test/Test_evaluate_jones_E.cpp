@@ -21,7 +21,7 @@
 
 #define D2R (M_PI / 180.0)
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 static int device_loc = OSKAR_GPU;
 #else
 static int device_loc = OSKAR_CPU;

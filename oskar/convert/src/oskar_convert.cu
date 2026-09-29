@@ -1,5 +1,9 @@
 /* Copyright (c) 2018-2025, The OSKAR Developers. See LICENSE file. */
 
+/* nvcc injects the CUDA runtime into every .cu automatically; the HIP
+ * front end does not, so ask for it explicitly. */
+#include "utility/oskar_gpu.h"
+
 #include "convert/define_convert_az_el_to_enu_directions.h"
 #include "convert/define_convert_apparent_ra_dec_to_enu_directions.h"
 #include "convert/define_convert_cirs_relative_directions_to_enu_directions.h"

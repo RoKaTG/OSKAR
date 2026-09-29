@@ -7,8 +7,8 @@
 #include "binary/oskar_binary.h"
 #include "settings/oskar_settings_macros.h"
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ const char* oskar_get_error_string(int error)
 {
     /* If the error code is positive, get the CUDA error string
      * (OSKAR error codes are negative). */
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (error > 0)
     {
         return cudaGetErrorString((cudaError_t)error);

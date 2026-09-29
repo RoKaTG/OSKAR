@@ -5,8 +5,8 @@
 
 #include <math.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -36,7 +36,7 @@ double oskar_mem_get_element(const oskar_Mem* mem, size_t index, int* status)
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         const size_t bytes = oskar_mem_element_size(mem->type);
         const void* src = ((const char*) mem->data) + bytes * index;
         switch (mem->type)

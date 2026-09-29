@@ -12,7 +12,7 @@
 #include "utility/oskar_cuda_registrar.h"
 #include "utility/oskar_kernel_macros.h"
 #include "utility/oskar_vector_types.h"
-#include <cuda_runtime.h>
+#include "utility/oskar_gpu.h"
 
 /* Kernels */
 

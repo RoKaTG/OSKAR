@@ -5,8 +5,8 @@
 
 #include <string.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -45,7 +45,7 @@ void oskar_mem_set_element_real(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         switch (precision)
         {
         case OSKAR_DOUBLE:

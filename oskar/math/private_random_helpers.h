@@ -32,8 +32,8 @@
 #include <oskar_global.h>
 #include <math/oskar_cmath.h>
 #include <math/private_random_generators.h>
-#ifdef __CUDACC__
-#include <cuda_runtime.h>
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP__)
+#include "utility/oskar_gpu.h"
 #endif
 
 #ifdef __cplusplus
@@ -77,7 +77,7 @@ void oskar_box_muller_f(unsigned long u0, unsigned long u1,
         float* f0, float* f1)
 {
     float r;
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP__)
     sincospif(oskar_int_to_range_minus_1_to_1_f(u0), f0, f1);
 #else
     float t = (float) M_PI;
@@ -95,7 +95,7 @@ void oskar_box_muller_d(unsigned long u0, unsigned long u1,
         double* f0, double* f1)
 {
     double r;
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || defined(__HIPCC__) || defined(__HIP__)
     sincospi(oskar_int_to_range_minus_1_to_1_d(u0), f0, f1);
 #else
     double t = M_PI;

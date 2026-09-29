@@ -145,7 +145,7 @@ TEST(coordinate_conversions, cirs_relative_directions_to_enu_directions)
         oskar_mem_free(n, &status);
 
         // Device/GPU version.
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         loc = OSKAR_GPU;
 #endif
 
@@ -256,7 +256,7 @@ TEST(coordinate_conversions, cirs_relative_directions_to_enu_directions)
         oskar_mem_free(n, &status);
 
         // Device/GPU version.
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         loc = OSKAR_GPU;
 #endif
 

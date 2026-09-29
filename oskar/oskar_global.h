@@ -122,6 +122,18 @@ enum OSKAR_COORD_TYPE
 #endif
 
 
+/* A vendor GPU backend is available. Code that only needs to know "is there
+ * a GPU runtime here" should test this rather than either vendor macro; the
+ * runtime call shim lives in utility/oskar_gpu.h. */
+#if (defined(OSKAR_HAVE_CUDA) || defined(OSKAR_HAVE_HIP)) && \
+        !defined(OSKAR_HAVE_GPU)
+    /* The build system also supplies this on the command line, because some
+     * sources test it above their first OSKAR include. Guarded so the two
+     * definitions do not collide. */
+    #define OSKAR_HAVE_GPU
+#endif
+
+
 /* Detect Windows platform. */
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
 #    define OSKAR_OS_WIN32
@@ -194,6 +206,13 @@ enum OSKAR_COORD_TYPE
 /* OSKAR_INLINE macro. */
 #ifdef __CUDA_ARCH__
     #define OSKAR_INLINE __device__ __forceinline__
+#elif defined(__HIPCC__) || defined(__HIP__)
+    /* hipcc defines no __CUDA_ARCH__, so without this branch these helpers
+     * would be host-only and every kernel calling them would fail to resolve
+     * ("call to __host__ function from __global__ function"). Marking them
+     * usable from both sides also keeps their declaration identical across
+     * clang's separate host and device passes. */
+    #define OSKAR_INLINE static __host__ __device__ inline
 #elif __STDC_VERSION__ >= 199901L || defined(__cplusplus)
     #define OSKAR_INLINE static inline
 #else

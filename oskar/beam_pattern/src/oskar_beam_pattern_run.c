@@ -101,7 +101,7 @@ void oskar_beam_pattern_run(oskar_BeamPattern* h, int* status)
     /* Record memory usage. */
     if (!*status)
     {
-#if defined(OSKAR_HAVE_CUDA) || defined(OSKAR_HAVE_OPENCL)
+#if defined(OSKAR_HAVE_GPU) || defined(OSKAR_HAVE_OPENCL)
         oskar_log_section(h->log, 'M', "Initial memory usage");
         for (i = 0; i < h->num_gpus; ++i)
         {
@@ -138,7 +138,7 @@ void oskar_beam_pattern_run(oskar_BeamPattern* h, int* status)
     /* Record memory usage. */
     if (!*status)
     {
-#if defined(OSKAR_HAVE_CUDA) || defined(OSKAR_HAVE_OPENCL)
+#if defined(OSKAR_HAVE_GPU) || defined(OSKAR_HAVE_OPENCL)
         oskar_log_section(h->log, 'M', "Final memory usage");
         for (i = 0; i < h->num_gpus; ++i)
         {

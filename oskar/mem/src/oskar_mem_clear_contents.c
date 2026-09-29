@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "log/oskar_log.h"
@@ -32,8 +32,8 @@ void oskar_mem_clear_contents(oskar_Mem* mem, int* status)
     }
     else if (mem->location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
-        cudaMemset(mem->data, 0, size);
+#ifdef OSKAR_HAVE_GPU
+        *status = (int) cudaMemset(mem->data, 0, size);
 #else
         *status = OSKAR_ERR_CUDA_NOT_AVAILABLE;           /* LCOV_EXCL_LINE */
 #endif

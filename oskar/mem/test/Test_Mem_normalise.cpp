@@ -12,7 +12,7 @@ TEST(Mem, normalise)
 {
     int location = OSKAR_CPU, n = 1000000, status = 0;
     oskar_Mem *cpu = 0, *cpu2 = 0, *temp = 0;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     location = OSKAR_GPU;
 #endif
 

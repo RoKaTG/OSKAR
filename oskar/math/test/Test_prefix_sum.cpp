@@ -27,7 +27,7 @@ void run_test(const oskar_Mem* in_cpu, const char* fname)
     printf("Prefix sum on CPU took %.3f sec\n", oskar_timer_elapsed(tmr));
     oskar_timer_free(tmr);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Run on GPU with CUDA.
     oskar_Mem* in_gpu = oskar_mem_create_copy(in_cpu, OSKAR_GPU, &status);
     oskar_Mem* out_gpu = oskar_mem_create(OSKAR_INT, OSKAR_GPU, n + 1, &status);
@@ -66,14 +66,14 @@ void run_test(const oskar_Mem* in_cpu, const char* fname)
     {
         size_t num_mem = 1;
         FILE* fhan = fopen(fname, "w");
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         num_mem += 1;
 #endif
 #ifdef OSKAR_HAVE_OPENCL
         num_mem += 1;
 #endif
         oskar_mem_save_ascii(fhan, num_mem, 0, n + 1, &status, out_cpu
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
                 , out_cmp_gpu
 #endif
 #ifdef OSKAR_HAVE_OPENCL
@@ -84,7 +84,7 @@ void run_test(const oskar_Mem* in_cpu, const char* fname)
     }
 
     // Clean up.
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     oskar_mem_free(in_gpu, &status);
     oskar_mem_free(out_gpu, &status);
     oskar_mem_free(out_cmp_gpu, &status);

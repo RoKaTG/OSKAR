@@ -28,3 +28,18 @@
 
 # local claude settings
 /.claude/settings.local.json
+
+# The bootstrapped cmake tarball, if staged here by hand
+/rocm/cmake-*-linux-x86_64.tar.gz
+
+# Local install prefixes
+/install/
+/install-*/
+
+# Python bindings build artifacts
+/python/build/
+/python/*.egg-info/
+
+# Simulation outputs (the reference data in rocm/golden is kept)
+/sim/lofar/*.vis
+/sim/lofar/*.ms/

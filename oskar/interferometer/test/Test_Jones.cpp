@@ -564,7 +564,7 @@ TEST(Jones, join_in_place_matx_matx_matx_singleCPU_doubleCL)
 
 #endif
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 
 // GPU only. //////////////////////////////////////////////////////////////////
 
@@ -884,7 +884,7 @@ TEST(Jones, set_ones_doubleGPU)
     test_ones(OSKAR_DOUBLE, OSKAR_GPU);
 }
 
-#endif /* OSKAR_HAVE_CUDA */
+#endif /* OSKAR_HAVE_GPU */
 
 TEST(Jones, set_ones_singleCPU)
 {

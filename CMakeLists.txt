@@ -82,7 +82,21 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # === Find dependencies and set definitions.
-if (FIND_CUDA OR NOT DEFINED FIND_CUDA)
+# HIP is opt-in (-DFIND_HIP=ON). It and CUDA both provide the OSKAR_GPU
+# compute location, so at most one of them can be enabled in a given build;
+# asking for HIP therefore suppresses the CUDA search rather than racing it.
+if (FIND_HIP)
+    find_package(hip QUIET)
+    if (hip_FOUND)
+        find_package(hipfft QUIET)
+    else()
+        message(FATAL_ERROR
+            "FIND_HIP=ON but the HIP package was not found. Set "
+            "CMAKE_PREFIX_PATH to the ROCm installation, for example "
+            "-DCMAKE_PREFIX_PATH=/opt/rocm")
+    endif()
+endif()
+if ((FIND_CUDA OR NOT DEFINED FIND_CUDA) AND NOT hip_FOUND)
     find_package(CUDAToolkit 7.0)
 endif()
 # OpenCL is opt-in (-DFIND_OPENCL=ON) on all platforms except Apple, where it
@@ -110,6 +124,18 @@ if (FIND_SKA_SDP_FUNC OR NOT DEFINED FIND_SKA_SDP_FUNC)
 endif()
 if (CUDAToolkit_FOUND)
     add_definitions(-DOSKAR_HAVE_CUDA)
+endif()
+if (hip_FOUND)
+    add_definitions(-DOSKAR_HAVE_HIP)
+    if (NOT hipfft_FOUND)
+        message(WARNING "hipFFT not found: the imager's FFT will be unavailable.")
+    endif()
+endif()
+if (CUDAToolkit_FOUND OR hip_FOUND)
+    # Must be a compile definition rather than a #define in oskar_global.h:
+    # sources such as math/src/oskar_fft.c test it above their first OSKAR
+    # include, where a header-supplied macro would not yet be visible.
+    add_definitions(-DOSKAR_HAVE_GPU)
 endif()
 if (OpenCL_FOUND)
     add_definitions(-DOSKAR_HAVE_OPENCL)

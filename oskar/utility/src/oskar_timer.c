@@ -17,8 +17,8 @@
 #include <windows.h>
 #endif
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #ifdef OSKAR_HAVE_OPENCL
@@ -36,7 +36,7 @@ extern "C" {
 struct oskar_Timer
 {
     oskar_Mutex* mutex;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     cudaEvent_t start_cuda, end_cuda;
 #endif
     double start, elapsed;
@@ -82,7 +82,7 @@ oskar_Timer* oskar_timer_create(int type)
 #endif
     timer->type = type;
     timer->paused = 1;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (timer->type == OSKAR_TIMER_CUDA)
     {
         cudaEventCreate(&timer->start_cuda);
@@ -95,7 +95,7 @@ oskar_Timer* oskar_timer_create(int type)
 void oskar_timer_free(oskar_Timer* timer)
 {
     if (!timer) return;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (timer->type == OSKAR_TIMER_CUDA)
     {
         cudaEventDestroy(timer->start_cuda);
@@ -111,7 +111,7 @@ double oskar_timer_elapsed(oskar_Timer* timer)
     /* If timer is paused, return immediately with current elapsed time. */
     if (timer->paused) return timer->elapsed;
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (timer->type == OSKAR_TIMER_CUDA)
     {
         float millisec = 0.0f;
@@ -188,7 +188,7 @@ void oskar_timer_resume(oskar_Timer* timer)
 void oskar_timer_restart(oskar_Timer* timer)
 {
     timer->paused = 0;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (timer->type == OSKAR_TIMER_CUDA)
     {
         cudaEventRecord(timer->start_cuda, 0);

@@ -12,7 +12,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <cuda_runtime.h>
+#include "utility/oskar_gpu.h"
 
 enum { VER_OLD = 1, VER_NON_SM = 2, VER_SM = 3 };
 static int ver_ = 0;

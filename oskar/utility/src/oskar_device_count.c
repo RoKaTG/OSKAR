@@ -9,8 +9,8 @@
 
 #include "utility/oskar_device_count.h"
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -34,7 +34,7 @@ int oskar_device_count(const char* platform, int* location)
     {
         selector = toupper(env[0]);                       /* LCOV_EXCL_LINE */
     }
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (cudaGetDeviceCount(&num_cuda) != cudaSuccess) num_cuda = 0;
 #endif
     if ((selector == ' ' && num_cuda > 0) || selector == 'C')

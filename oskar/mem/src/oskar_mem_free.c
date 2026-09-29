@@ -5,8 +5,8 @@
 
 #include <stdlib.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -61,7 +61,7 @@ void oskar_mem_free(oskar_Mem* mem, int* status)
         }
         else if (mem->location == OSKAR_GPU)
         {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
             /* Free GPU memory. */
             const int error = (int) cudaFree(mem->data);
             if (status && error) *status = error;

@@ -306,7 +306,7 @@ void oskar_cross_correlate(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         if (use_extended)
         {
             switch (oskar_mem_type(vis))

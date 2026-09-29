@@ -14,8 +14,8 @@
 #include "utility/oskar_device.h"
 #include "utility/private_device.h"
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "binary/oskar_binary.h"
@@ -73,7 +73,7 @@ static oskar_LocalMutex mutex_; // NOLINT: This constructor will not throw.
 void oskar_device_check_error_cuda(int* status)
 {
     if (*status) return;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     *status = (int) cudaPeekAtLastError();
 #endif
 }
@@ -222,7 +222,7 @@ void oskar_device_launch_kernel(const char* name, int location,
     if (global_size[2] == 0) global_size[2] = 1;
     if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         size_t j = 0, shared_mem = 0;
         dim3 num_threads, num_blocks;
         void* arg_[40];
@@ -346,7 +346,7 @@ void oskar_device_launch_kernel(const char* name, int location,
     {
         *status = OSKAR_ERR_BAD_LOCATION;
     }
-#if !defined(OSKAR_HAVE_CUDA) && !defined(OSKAR_HAVE_OPENCL)
+#if !defined(OSKAR_HAVE_GPU) && !defined(OSKAR_HAVE_OPENCL)
     (void) num_dims;
     (void) num_args;
     (void) arg;
@@ -393,7 +393,7 @@ int oskar_device_require_double(void)
 
 void oskar_device_reset_all(void)
 {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     int num = 0;
     if (cudaGetDeviceCount(&num) != cudaSuccess) num = 0;
     for (int i = 0; i < num; ++i)
@@ -415,7 +415,7 @@ void oskar_device_reset_all(void)
 void oskar_device_set(int location, int id, int* status)
 {
     if (*status || id < 0) return;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     if (location == OSKAR_GPU)
     {
         *status = (int) cudaSetDevice(id);

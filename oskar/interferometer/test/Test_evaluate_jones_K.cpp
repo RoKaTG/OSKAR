@@ -14,7 +14,7 @@
 
 static void run_test(int type, double tol)
 {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     int location = OSKAR_GPU;
 #else
     int location = OSKAR_CPU;

@@ -1,5 +1,9 @@
 /* Copyright (c) 2018-2025, The OSKAR Developers. See LICENSE file. */
 
+/* nvcc injects the CUDA runtime into every .cu automatically; the HIP
+ * front end does not, so ask for it explicitly. */
+#include "utility/oskar_gpu.h"
+
 #include "math/define_multiply.h"
 #include "interferometer/define_jones_apply_cable_length_errors.h"
 #include "interferometer/define_jones_apply_station_gains.h"

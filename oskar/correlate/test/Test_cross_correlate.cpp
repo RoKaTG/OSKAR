@@ -279,7 +279,7 @@ TEST_F(cross_correlate, CPU)
     }
 }
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 // Check for consistency between CPU and CUDA versions.
 TEST_F(cross_correlate, CUDA)
 {

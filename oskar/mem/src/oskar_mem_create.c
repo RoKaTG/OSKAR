@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -92,14 +92,26 @@ oskar_Mem* oskar_mem_create(
     }
     else if (location == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
-        /* Allocate GPU memory. For efficiency, don't clear it. */
+#ifdef OSKAR_HAVE_GPU
+        /* Allocate GPU memory. On CUDA, don't clear it, for efficiency. */
         const size_t bytes = num_elements * element_size;
         *status = (int) cudaMalloc(&mem->data, bytes);
         if (!*status && mem->data == NULL)
         {
             *status = OSKAR_ERR_MEMORY_ALLOC_FAILURE;     /* LCOV_EXCL_LINE */
         }
+#ifdef OSKAR_HAVE_HIP
+        /* Clear new device allocations on HIP. Without this, the first kernel
+         * in a process can read incorrect values from a buffer that was
+         * filled by a host-to-device copy, on ROCm 6.1 with gfx90a. CUDA does
+         * not need it: fresh device memory reads as zero there in practice.
+         * Set OSKAR_HIP_NO_CLEAR_ON_ALLOC=1 to disable, to check whether a
+         * given ROCm version still requires it. */
+        if (!*status && bytes > 0 && !getenv("OSKAR_HIP_NO_CLEAR_ON_ALLOC"))
+        {
+            *status = (int) cudaMemset(mem->data, 0, bytes);
+        }
+#endif
 #else
         *status = OSKAR_ERR_CUDA_NOT_AVAILABLE;           /* LCOV_EXCL_LINE */
 #endif

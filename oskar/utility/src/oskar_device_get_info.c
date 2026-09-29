@@ -10,8 +10,8 @@
 #include "utility/private_device.h"
 #include "utility/oskar_device.h"
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #ifdef __cplusplus
@@ -98,12 +98,16 @@ void oskar_device_get_info_cl(oskar_Device* device)
 
 void oskar_device_get_info_cuda(oskar_Device* device)
 {
-#ifdef OSKAR_HAVE_CUDA
-    struct cudaDeviceProp prop;
+#ifdef OSKAR_HAVE_GPU
+    oskar_GpuDeviceProp prop;
     cudaDriverGetVersion(&device->cuda_driver_version);
     cudaRuntimeGetVersion(&device->cuda_runtime_version);
     cudaGetDeviceProperties(&prop, device->index);
+#ifdef OSKAR_HAVE_HIP
+    const char* vendor_name = "AMD";
+#else
     const char* vendor_name = "NVIDIA";
+#endif
     const size_t name_length = 1 + strlen(prop.name);
     const size_t vendor_length = 1 + strlen(vendor_name);
     free(device->name);
@@ -147,8 +151,15 @@ void oskar_device_get_info_cuda(oskar_Device* device)
     device->warp_size = prop.warpSize;
     cudaMemGetInfo(&device->global_mem_free_size, &device->global_mem_size);
 #endif
+#ifdef OSKAR_HAVE_HIP
+    /* The CUDA cores-per-SM table keyed on compute capability means nothing
+     * for AMD (it reported 13312 for an MI210). GCN and CDNA compute units
+     * each have 64 stream processors. */
+    device->num_cores = device->max_compute_units * 64;
+#else
     device->num_cores = device->max_compute_units * oskar_get_num_cuda_cores(
             device->compute_capability[0], device->compute_capability[1]);
+#endif
     device->init = 1;
 }
 

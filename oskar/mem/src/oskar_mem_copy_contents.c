@@ -5,8 +5,8 @@
 
 #include <string.h>
 
-#ifdef OSKAR_HAVE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef OSKAR_HAVE_GPU
+#include "utility/oskar_gpu.h"
 #endif
 
 #include "mem/oskar_mem.h"
@@ -62,7 +62,7 @@ void oskar_mem_copy_contents(
     /* Host to CUDA device. */
     else if (location_src == OSKAR_CPU && location_dst == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         *status = (int) cudaMemcpy(
                 destination, source, bytes, cudaMemcpyHostToDevice
         );
@@ -74,7 +74,7 @@ void oskar_mem_copy_contents(
     /* CUDA device to host. */
     else if (location_src == OSKAR_GPU && location_dst == OSKAR_CPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         *status = (int) cudaMemcpy(
                 destination, source, bytes, cudaMemcpyDeviceToHost
         );
@@ -86,7 +86,7 @@ void oskar_mem_copy_contents(
     /* CUDA device to CUDA device. */
     else if (location_src == OSKAR_GPU && location_dst == OSKAR_GPU)
     {
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         *status = (int) cudaMemcpy(
                 destination, source, bytes, cudaMemcpyDeviceToDevice
         );

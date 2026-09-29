@@ -35,7 +35,7 @@ TEST(Mem, random_uniform)
     double max_err = 0.0, avg_err = 0.0;
     oskar_Mem* v_cpu_f = oskar_mem_create(OSKAR_SINGLE, OSKAR_CPU, n, &status);
     oskar_Mem* v_cpu_d = oskar_mem_create(OSKAR_DOUBLE, OSKAR_CPU, n, &status);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     oskar_Mem* v_gpu_f = oskar_mem_create(OSKAR_SINGLE, OSKAR_GPU, n, &status);
     oskar_Mem* v_gpu_d = oskar_mem_create(OSKAR_DOUBLE, OSKAR_GPU, n, &status);
 #endif
@@ -55,7 +55,7 @@ TEST(Mem, random_uniform)
     report_time(n, "uniform", "double", "CPU", oskar_timer_elapsed(tmr));
     ASSERT_EQ(0, status) << oskar_get_error_string(status);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Run on GPU with CUDA.
     oskar_timer_start(tmr);
     oskar_mem_random_uniform(v_gpu_f, seed, c1, c2, c3, &status);
@@ -100,7 +100,7 @@ TEST(Mem, random_uniform)
             &max_err, &avg_err, 0, &status);
     EXPECT_LT(avg_err, 1e-5);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Check consistency between CPU and GPU results.
     oskar_mem_evaluate_relative_error(v_gpu_f, v_cpu_f, 0,
             &max_err, &avg_err, 0, &status);
@@ -124,14 +124,14 @@ TEST(Mem, random_uniform)
     {
         size_t num_mem = 2;
         FILE* fhan = fopen("random_uniform.txt", "w");
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         num_mem += 2;
 #endif
 #ifdef OSKAR_HAVE_OPENCL
         num_mem += 2;
 #endif
         oskar_mem_save_ascii(fhan, num_mem, 0, n, &status, v_cpu_f, v_cpu_d
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
                 , v_gpu_f, v_gpu_d
 #endif
 #ifdef OSKAR_HAVE_OPENCL
@@ -144,7 +144,7 @@ TEST(Mem, random_uniform)
     // Free memory.
     oskar_mem_free(v_cpu_f, &status);
     oskar_mem_free(v_cpu_d, &status);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     oskar_mem_free(v_gpu_f, &status);
     oskar_mem_free(v_gpu_d, &status);
 #endif
@@ -165,7 +165,7 @@ TEST(Mem, random_gaussian)
     double max_err = 0.0, avg_err = 0.0;
     oskar_Mem* v_cpu_f = oskar_mem_create(OSKAR_SINGLE, OSKAR_CPU, n, &status);
     oskar_Mem* v_cpu_d = oskar_mem_create(OSKAR_DOUBLE, OSKAR_CPU, n, &status);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     oskar_Mem* v_gpu_f = oskar_mem_create(OSKAR_SINGLE, OSKAR_GPU, n, &status);
     oskar_Mem* v_gpu_d = oskar_mem_create(OSKAR_DOUBLE, OSKAR_GPU, n, &status);
 #endif
@@ -185,7 +185,7 @@ TEST(Mem, random_gaussian)
     report_time(n, "Gaussian", "double", "CPU", oskar_timer_elapsed(tmr));
     ASSERT_EQ(0, status) << oskar_get_error_string(status);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Run on GPU with CUDA.
     oskar_timer_start(tmr);
     oskar_mem_random_gaussian(v_gpu_f, seed, c1, c2, c3, 1.0, &status);
@@ -230,7 +230,7 @@ TEST(Mem, random_gaussian)
             &max_err, &avg_err, 0, &status);
     EXPECT_LT(avg_err, 1e-5);
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     // Check consistency between CPU and GPU results.
     oskar_mem_evaluate_relative_error(v_gpu_f, v_cpu_f, 0,
             &max_err, &avg_err, 0, &status);
@@ -254,14 +254,14 @@ TEST(Mem, random_gaussian)
     {
         size_t num_mem = 2;
         FILE* fhan = fopen("random_gaussian.txt", "w");
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
         num_mem += 2;
 #endif
 #ifdef OSKAR_HAVE_OPENCL
         num_mem += 2;
 #endif
         oskar_mem_save_ascii(fhan, num_mem, 0, n, &status, v_cpu_f, v_cpu_d
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
                 , v_gpu_f, v_gpu_d
 #endif
 #ifdef OSKAR_HAVE_OPENCL
@@ -274,7 +274,7 @@ TEST(Mem, random_gaussian)
     // Free memory.
     oskar_mem_free(v_cpu_f, &status);
     oskar_mem_free(v_cpu_d, &status);
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     oskar_mem_free(v_gpu_f, &status);
     oskar_mem_free(v_gpu_d, &status);
 #endif
@@ -291,7 +291,7 @@ TEST(Mem, random_gaussian_accum)
     int seed = 1;
     int blocksize = 256;
     int rounds = 128;
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
     int location = OSKAR_GPU;
 #else
     int location = OSKAR_CPU;

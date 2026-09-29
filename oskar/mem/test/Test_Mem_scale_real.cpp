@@ -8,7 +8,7 @@
 #include "mem/oskar_mem.h"
 #include "utility/oskar_get_error_string.h"
 
-#ifdef OSKAR_HAVE_CUDA
+#ifdef OSKAR_HAVE_GPU
 static const int location = OSKAR_GPU;
 #else
 static const int location = OSKAR_CPU;

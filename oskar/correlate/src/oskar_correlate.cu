@@ -1,5 +1,9 @@
 /* Copyright (c) 2018-2019, The University of Oxford. See LICENSE file. */
 
+/* nvcc injects the CUDA runtime into every .cu automatically; the HIP
+ * front end does not, so ask for it explicitly. */
+#include "utility/oskar_gpu.h"
+
 #include "correlate/define_auto_correlate.h"
 #include "correlate/define_correlate_utils.h"
 #include "correlate/define_evaluate_auto_power.h"
